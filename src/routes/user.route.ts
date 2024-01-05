@@ -9,13 +9,15 @@ userRouter.post("/login",UserController.loginUser);
 //Update the user
 userRouter.put("/:id",Authentication.authenticate,UserController.updateUser);
 //To get all the user
-userRouter.get("/",Authentication.authenticate,UserController.getAllUsers);
+userRouter.get("/",UserController.getAllUsers);
 //To get a particular user
 userRouter.get("/:id",UserController.getAParticularUser);
 //Delete the user
 userRouter.delete("/:id",Authentication.authenticate,UserController.deleteUser);
 //Reset password
-userRouter.patch("/resetPassword",Authentication.authenticate,UserController.resetPassword);
+userRouter.patch("/reset-password",Authentication.authenticate,UserController.resetPassword);
+//Verify otp
+userRouter.post("/verify-otp",Authentication.authenticate,UserController.verifyOtp);
 
 // userRouter.get("/",UserController.handleGetUser);
 export default userRouter;

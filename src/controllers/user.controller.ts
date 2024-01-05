@@ -6,7 +6,7 @@ import * as jwt from "jsonwebtoken";
 const dotenv = require("dotenv");
 dotenv.config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY; 
-console.log(JWT_SECRET_KEY);
+
 export class UserController {
      static async createUser(req:Request,res:Response) {
         try {
@@ -22,7 +22,14 @@ export class UserController {
                     message:"user already exists",
                 })
             }
-            const user = await User.create({firstName,lastName,phoneNo,email,password:hashedPassword});
+            const user = await User.create({
+                firstName,
+                lastName,
+                phoneNo,
+                email,
+                password:hashedPassword,
+                otp:await Auth.generateOtp()
+            });
             return res.status(201).json({
                 message:"User successfully created",
                 data:user,
@@ -191,5 +198,32 @@ export class UserController {
             message:"Password reset successfully",
             data:updatedData,
         })
+    }
+
+
+
+
+
+
+    static async verifyOtp(req:Request,res:Response) {
+        const id = req.user._id;
+        const {otp} = req.body;
+        const user = await User.findOne({_id:id});
+        
+        if(!user) {
+            res.status(400).json({
+                message:"User not found",
+            })
+        }
+        if(user.otp === otp) {
+            res.json({
+                message:"Otp verified successfully",
+            })
+        } else {
+            res.json({
+                message:"Otp doesn't match",
+            })
+        }
+       
     }
 }

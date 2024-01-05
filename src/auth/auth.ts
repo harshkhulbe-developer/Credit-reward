@@ -7,6 +7,16 @@
 import * as bcrypt from "bcrypt";
 
 export class Auth {
+
+    generateOtp(size:number=4):string {
+        let digits = '0123456789';
+        let otp = '';
+        for(let i = 0; i < size; i++) {
+            otp += digits[Math.floor(Math.random()*10)];
+        }
+        return otp;
+    }
+
     hashPassword(plainPassword:string) {
         const hash = bcrypt.hash(plainPassword,10);
         return hash;
