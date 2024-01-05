@@ -1,11 +1,12 @@
 import {Request,Response} from "express";
 const User = require("../models/user.model");
 import * as mongoose from "mongoose";
-// const {Auth} = require("./auth/auth"); 
 import Auth from '../auth/auth';
-
-
-
+import * as jwt from "jsonwebtoken";
+const dotenv = require("dotenv");
+dotenv.config();
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY; 
+console.log(JWT_SECRET_KEY);
 export class UserController {
      static async createUser(req:Request,res:Response) {
         try {
@@ -55,14 +56,20 @@ export class UserController {
             console.log("Password matches? ",match);
 
             if(match) {
-                return res.status(200).json({
-                    message:"User is logged in",
+                // return res.status(200).json({
+                //     message:"User is logged in",
+                // })
+                const token = jwt.sign({_id:user._id,email:user.email},JWT_SECRET_KEY,{expiresIn:"30d"});
+                return res.json({
+                    message:"Sucessfully logged in",
+                    token,
                 })
             } else {
                 return res.status(401).json({
                     message:"Wrong Password"
                 })
             }
+
         } catch (error) {
             console.log(error);
         }
