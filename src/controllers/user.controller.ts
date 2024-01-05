@@ -1,0 +1,188 @@
+import {Request,Response} from "express";
+const User = require("../models/user.model");
+import * as mongoose from "mongoose";
+// const {Auth} = require("./auth/auth"); 
+import Auth from '../auth/auth';
+
+
+
+export class UserController {
+     static async createUser(req:Request,res:Response) {
+        try {
+            const {firstName,lastName,phoneNo,email,password} = req.body;
+            if(!firstName || !lastName || !phoneNo || !email || !password) {
+                return res.status(400).json("Please fill all the required fields");
+            }
+            const hashedPassword:string = await Auth.hashPassword(password);
+
+            const userExists = await User.findOne({email});
+            if(userExists) {
+                return res.status(409).json({
+                    message:"user already exists",
+                })
+            }
+            const user = await User.create({firstName,lastName,phoneNo,email,password:hashedPassword});
+            return res.status(201).json({
+                message:"User successfully created",
+                data:user,
+            })
+        } catch (error) {
+            console.log(error);
+            return res.status(422).json({
+                message:"User Registration failed",
+                err:error,
+            })
+        }
+    }
+
+    
+
+
+
+
+    static async loginUser(req:Request,res:Response) {
+        try {
+            const {email,password} = req.body;
+            const user = await User.findOne({email});
+
+            if(!user) {
+                return res.status(404).json({
+                    message:"User doesn't exists",
+                })
+            }
+
+            const match = await Auth.comparePassword(password,user.password);
+            console.log("Password matches? ",match);
+
+            if(match) {
+                return res.status(200).json({
+                    message:"User is logged in",
+                })
+            } else {
+                return res.status(401).json({
+                    message:"Wrong Password"
+                })
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
+
+
+    static async updateUser(req:Request,res:Response) {
+        try {
+            const userId = req.params.id;
+            const {firstName,lastName,phoneNo,email} = req.body;
+
+            const updatedUser = await User.findByIdAndUpdate(userId,{$set:{
+                firstName,lastName,phoneNo,email,
+            }},{new:true});
+
+            return res.status(200).json({
+                message:"User updated successfully",
+                data:updatedUser,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
+
+
+
+    static async getAllUsers(req:Request,res:Response){
+        try {
+            const users = await User.find({});
+            res.status(200).json({
+                message:"Successfully got all the users",
+                data:users,
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
+
+
+
+    static async getAParticularUser(req:Request,res:Response) {
+        try {
+            const userId = req.params.id;
+            const user = await User.findById({_id:userId});
+            if(!user) {
+                return res.status(404).json({
+                    message:"User doesn't exists",
+                })
+            }
+
+            return res.json({
+                message:"Got the user data",
+                data:user,
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
+
+
+
+    static async deleteUser(req:Request,res:Response) {
+        try {
+            const userId = req.params.id;
+            const userToBeDeleted = await User.findByIdAndDelete({_id:userId});
+            res.json({
+                message:"User deleted successfully",
+                userDeleted:userToBeDeleted,
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
+
+
+    static async resetPassword(req:Request,res:Response) {
+        const {email,password,confirmPassword} = req.body;
+        const user = await User.find({email});
+        if(!user) {
+            return res.status(404).json({
+                message:"User doesn't exists",
+            })
+        }
+
+        if(password !== confirmPassword) {
+            return res.json({
+                message:"Password and confirm password do not match",
+            })
+        }
+        const hashedPassword = await Auth.hashPassword(password);
+        const updatedData = await User.findOneAndUpdate({email},{
+            $set:{
+                password:hashedPassword,
+            }
+        })
+
+        return res.json({
+            message:"Password reset successfully",
+            data:updatedData,
+        })
+    }
+}
