@@ -9,7 +9,7 @@ userRouter.post("/login",UserController.loginUser);
 //Update the user
 userRouter.put("/:id",Authentication.authenticate,UserController.updateUser);
 //To get all the user
-userRouter.get("/",UserController.getAllUsers);
+userRouter.get("/",Authentication.authenticate,UserController.getAllUsers);
 //To get a particular user
 userRouter.get("/:id",UserController.getAParticularUser);
 //Delete the user
