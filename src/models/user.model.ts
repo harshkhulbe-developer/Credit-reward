@@ -19,6 +19,18 @@ const userSchema = new mongoose.Schema({
     otp:{
         type:String,
     },
+    address:{
+        type:String,
+    },
+    dob:{
+        type:Date,
+    },
+    ssn:{
+        type:Number,
+    },
+    income:{
+        type:Number,
+    }
 },{timestamps:true});
 
 const User = mongoose.model("User",userSchema);

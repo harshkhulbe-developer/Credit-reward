@@ -6,6 +6,7 @@ import * as jwt from "jsonwebtoken";
 const dotenv = require("dotenv");
 dotenv.config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY; 
+const Card = require("../models/card.model");
 
 export class UserController {
      static async createUser(req:Request,res:Response) {
@@ -67,7 +68,7 @@ export class UserController {
                 //     message:"User is logged in",
                 // })
                 const token = jwt.sign({_id:user._id,email:user.email},JWT_SECRET_KEY,{expiresIn:"30d"});
-                return res.json({
+                return res.status(200).json({
                     message:"Sucessfully logged in",
                     token,
                 })
@@ -114,7 +115,7 @@ export class UserController {
     static async getAllUsers(req:Request,res:Response){
         try {
             const users = await User.find({});
-            res.status(200).json({
+            return res.status(200).json({
                 message:"Successfully got all the users",
                 data:users,
             })
@@ -159,7 +160,7 @@ export class UserController {
         try {
             const userId = req.params.id;
             const userToBeDeleted = await User.findByIdAndDelete({_id:userId});
-            res.json({
+            return res.json({
                 message:"User deleted successfully",
                 userDeleted:userToBeDeleted,
             })
@@ -173,7 +174,7 @@ export class UserController {
 
 
 
-    static async resetPassword(req:Request,res:Response) {
+    static async forgotPassword(req:Request,res:Response) {
         const {email,password,confirmPassword} = req.body;
         const user = await User.find({email});
         if(!user) {
@@ -216,14 +217,77 @@ export class UserController {
             })
         }
         if(user.otp === otp) {
-            res.json({
+            return res.json({
                 message:"Otp verified successfully",
             })
         } else {
-            res.json({
+            return res.json({
                 message:"Otp doesn't match",
             })
         }
        
+    }
+
+
+
+
+
+
+    static async accessProfile(req:Request,res:Response) {
+        try {
+            const userId = req.user.id;
+            const {password} = req.body;
+
+            if(!password) {
+                return res.json({
+                    message:"Please enter the password",
+                })
+            }
+
+            const user = User.findOne({userId});
+            if(!user) {
+                return res.json({
+                    message:"User not found",
+                })
+            }
+            const match = Auth.comparePassword(password,user.password);
+            if(!match) {
+                return res.json({
+                    message:"Password didn't match",
+                })
+            }
+            return res.json({
+                message:"Congrats,now user can access his/her profile",
+            })
+            } catch (error) {
+                console.log(error);
+            }
+    }
+
+
+
+
+
+    static async getAllCardsForUser(req:Request,res:Response) {
+        const userId = req.params.id;
+        const user = await User.findOne({_id:userId});
+        if(!user) {
+            return res.json({
+                message:"User not found",
+            })
+        }
+
+        const cards = await Card.find({userId});
+
+        if(!cards) {
+            return res.json({
+                message:"No cards found",
+            })
+        }
+
+        return res.json({
+            message:"Successfully got all the cards of a particular user",
+            cards,
+        })
     }
 }

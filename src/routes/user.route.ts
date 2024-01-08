@@ -1,5 +1,6 @@
 import {Router} from "express";
 import { UserController } from "../controllers/user.controller";
+import {AdditionalUserController} from "../controllers/additionalUser.controller";
 import {Authentication} from "../middlewares/authentication.middleware";
 const userRouter = Router();
 //To create the user
@@ -14,10 +15,20 @@ userRouter.get("/",UserController.getAllUsers);
 userRouter.get("/:id",UserController.getAParticularUser);
 //Delete the user
 userRouter.delete("/:id",Authentication.authenticate,UserController.deleteUser);
-//Reset password
-userRouter.patch("/reset-password",Authentication.authenticate,UserController.resetPassword);
+//Forgot password
+userRouter.patch("/forgot-password",Authentication.authenticate,UserController.forgotPassword);
 //Verify otp
 userRouter.post("/verify-otp",Authentication.authenticate,UserController.verifyOtp);
-
-// userRouter.get("/",UserController.handleGetUser);
+//Access profile 
+userRouter.post("/access-profile",Authentication.authenticate,UserController.accessProfile);
+//Add address of the user
+userRouter.put("/add-address/:id",Authentication.authenticate,AdditionalUserController.addAddress);
+//Add dob
+userRouter.put("/add-dob/:id",Authentication.authenticate,AdditionalUserController.addDateOfBirth);
+//Add SSN
+userRouter.put("/add-ssn/:id",Authentication.authenticate,AdditionalUserController.addSsn);
+//Add Income of the user
+userRouter.put("/add-income/:id",Authentication.authenticate,AdditionalUserController.addIncome);
+//Get all the cards of a particular user
+userRouter.get("/:id/cards",Authentication.authenticate,UserController.getAllCardsForUser);
 export default userRouter;
