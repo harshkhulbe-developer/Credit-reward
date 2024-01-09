@@ -270,15 +270,39 @@ export class UserController {
 
     static async getAllCardsForUser(req:Request,res:Response) {
         const userId = req.params.id;
-        const user = await User.findOne({_id:userId});
-        if(!user) {
+        // const user = await User.findOne({_id:userId});
+        // if(!user) {
+        //     return res.json({
+        //         message:"User not found",
+        //     })
+        // }
+        const objId = new mongoose.Types.ObjectId(userId)
+        // const cards = await Card.find({userId});
+        const cards = await User.aggregate([
+            {
+                $match:{
+                    _id:objId,
+                }
+            },
+            {
+                $lookup:{
+                    from:"cards",
+                    localField:"_id",
+                    foreignField:"userId",
+                    as:"userCard"
+                }
+            },
+            {
+                $project:{
+                    password:0,
+                }
+            }
+        ])
+        if (cards.length === 0) {
             return res.json({
-                message:"User not found",
-            })
+                message: "No cards found",
+            });
         }
-
-        const cards = await Card.find({userId});
-
         if(!cards) {
             return res.json({
                 message:"No cards found",
@@ -288,7 +312,6 @@ export class UserController {
         return res.json({
             message:"Successfully got all the cards of a particular user",
             cards,
-            user
-        })
+        });
     }
 }

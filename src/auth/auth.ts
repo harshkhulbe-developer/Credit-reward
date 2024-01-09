@@ -1,12 +1,6 @@
-// const bcrypt = require("bcrypt");
-
-// async function hashPassword(plainPassword) {
-//     const hash = await bcrypt.hash(plainPassword,10);
-    
-// }
 import * as bcrypt from "bcrypt";
 
-export class Auth {
+class Auth {
 
     generateOtp(size:number=4):string {
         let digits = '0123456789';
