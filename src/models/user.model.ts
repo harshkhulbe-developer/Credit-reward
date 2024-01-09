@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
     },
     income:{
         type:Number,
+    },
+    imagePath:{
+        type:String,
     }
 },{timestamps:true});
 

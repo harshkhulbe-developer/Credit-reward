@@ -288,6 +288,7 @@ export class UserController {
         return res.json({
             message:"Successfully got all the cards of a particular user",
             cards,
+            user
         })
     }
 }
