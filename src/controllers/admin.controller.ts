@@ -76,5 +76,28 @@ export class AdminController {
             users,
         })
     }
+
+
+
+
+    static async searchUser(req:Request,res:Response) {
+        try {
+            const {name} = req.query;
+            const user = await User.find({firstName:{$regex:name,$options:"i"}});
+            if(!user) {
+                return res.json({
+                    message:"User not exists",
+                })
+            }
+
+            return res.json({
+                message:"User found successfully",
+                userInfo:user,
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
