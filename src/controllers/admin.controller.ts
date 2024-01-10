@@ -3,6 +3,7 @@ import Admin from "../models/admin.model"
 import Auth from "../auth/auth";
 // import {User} from "../models/user.model"
 const User = require("../models/user.model");
+const Card = require("../models/card.model")
 import * as jwt from "jsonwebtoken";
 const dotenv = require("dotenv");
 dotenv.config();
@@ -77,6 +78,23 @@ export class AdminController {
         })
     }
 
+
+
+
+
+    static async getAllCard(req:Request,res:Response) {
+        const cards = await Card.find();
+        if(!cards) {
+            return res.json({
+                message:"There is some error while finding the cards",
+            })
+        }
+
+        return res.json({
+            message:"Successfully got all the cards",
+            cards,
+        })
+    }
 
 
 
