@@ -7,7 +7,6 @@ const twilio = require("twilio");
 const dotenv = require("dotenv");
 dotenv.config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY; 
-const Card = require("../models/card.model");
 const otpGenerator = require('otp-generator');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
 
@@ -33,7 +32,6 @@ export class UserController {
                 phoneNo,
                 email,
                 password:hashedPassword,
-                // otp:await Auth.generateOtp()
             });
             return res.status(201).json({
                 message:"User successfully created",
