@@ -3,20 +3,24 @@ const User = require("../models/user.model");
 import * as mongoose from "mongoose";
 import Auth from '../auth/auth';
 import * as jwt from "jsonwebtoken";
+const twilio = require("twilio");
 const dotenv = require("dotenv");
 dotenv.config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY; 
 const Card = require("../models/card.model");
+const otpGenerator = require('otp-generator');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
 
 export class UserController {
      static async createUser(req:Request,res:Response) {
         try {
             const {firstName,lastName,phoneNo,email,password} = req.body;
+            console.log(req.body,"body..........")
             if(!firstName || !lastName || !phoneNo || !email || !password) {
                 return res.status(400).json("Please fill all the required fields");
             }
             const hashedPassword:string = await Auth.hashPassword(password);
-
+          
             const userExists = await User.findOne({email});
             if(userExists) {
                 return res.status(409).json({
@@ -29,7 +33,7 @@ export class UserController {
                 phoneNo,
                 email,
                 password:hashedPassword,
-                otp:await Auth.generateOtp()
+                // otp:await Auth.generateOtp()
             });
             return res.status(201).json({
                 message:"User successfully created",
@@ -64,10 +68,7 @@ export class UserController {
             console.log("Password matches? ",match);
 
             if(match) {
-                // return res.status(200).json({
-                //     message:"User is logged in",
-                // })
-                const token = jwt.sign({_id:user._id,email:user.email},JWT_SECRET_KEY,{expiresIn:"30d"});
+                const token = jwt.sign({_id:user._id,email:user.email},JWT_SECRET_KEY,{expiresIn:"1d"});
                 return res.status(200).json({
                     message:"Sucessfully logged in",
                     token,
@@ -200,32 +201,63 @@ export class UserController {
             data:updatedData,
         })
     }
+    
 
 
+    static async sendOtp(req:Request,res:Response) {
+        const {phoneNo} = req.body;
+        const user = await User.findOne({phoneNo});
+        if(!user) {
+            return res.status(400).json({
+                message:"User not found"
+            })
+        }
 
+        const generatedOtp = otpGenerator.generate(6, 
+            { upperCaseAlphabets: false, specialChars: false,lowerCaseAlphabets:false }
+        );
+        await User.findOneAndUpdate({phoneNo},
+            {otp:generatedOtp,otpExpiration:new Date(Date.now() + 2*60*1000)}
+        );
+        await client.messages.create({
+            body:`OTP for credit-reward account verification is ${generatedOtp}`,
+            to:phoneNo,
+            from:process.env.TWILIO_PHONE_NUMBER,
+        })
+
+        res.status(200).json({
+            message:"Sent the OTP to the user",
+        })
+    }
 
 
 
     static async verifyOtp(req:Request,res:Response) {
-        const id = req.user._id;
-        const {otp} = req.body;
-        const user = await User.findOne({_id:id});
+       try {
+        const {otp,phoneNo} = req.body;
+        const user = await User.findOne({phoneNo});
         
         if(!user) {
             res.status(400).json({
                 message:"User not found",
-            })
+        })
         }
-        if(user.otp === otp) {
-            return res.json({
-                message:"Otp verified successfully",
+        if(user.otp !== otp || user.otpExpiration < new Date()) {
+            return res.status(401).json({
+                message:"Invalid OTP",
             })
-        } else {
-            return res.json({
-                message:"Otp doesn't match",
-            })
-        }
-       
+        } 
+        await User.findOneAndUpdate({phoneNo},{otp:null,otpExpiration:null});
+
+        return res.status(200).json({
+            message:"OTP verified successfully",
+        })
+       } catch (error) {
+        console.log("Error verifying otp...",error);
+        return res.status(500).json({
+            error: 'Failed to verify OTP',
+        })
+       }
     }
 
 
@@ -270,12 +302,6 @@ export class UserController {
 
     static async getAllCardsForUser(req:Request,res:Response) {
         const userId = req.params.id;
-        // const user = await User.findOne({_id:userId});
-        // if(!user) {
-        //     return res.json({
-        //         message:"User not found",
-        //     })
-        // }
         const objId = new mongoose.Types.ObjectId(userId)
         // const cards = await Card.find({userId});
         const cards = await User.aggregate([

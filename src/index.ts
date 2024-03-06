@@ -6,10 +6,12 @@ import cardRouter from "./routes/card.route";
 import imageRouter from "./routes/imageUpload.route";
 import { AdminController } from "./controllers/admin.controller";
 import adminRouter from "./routes/admin.route";
+const cors = require('cors');
 dotenv.config();
 const app = express();
 db();
 app.use(express.json());
+app.use(cors());
 
 function addAdmin() {
     AdminController.createAdmin();

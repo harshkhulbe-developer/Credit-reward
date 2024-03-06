@@ -102,7 +102,6 @@ export class BankController {
                   localField:"_id",
                   foreignField:"bankId",
                   as:"bankCard"
-      
                 }
               },
              

@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
         type:String,
     },
     phoneNo:{
-        type:Number,
+        type:String,
     },
     email:{
         type:String,
@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
     },
     otp:{
         type:String,
+    },
+    otpExpiration:{
+        type:Date,
     },
     address:{
         type:String,

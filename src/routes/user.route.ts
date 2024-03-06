@@ -17,8 +17,10 @@ userRouter.get("/:id",UserController.getAParticularUser);
 userRouter.delete("/:id",Authentication.authenticate,UserController.deleteUser);
 //Forgot password
 userRouter.patch("/forgot-password",Authentication.authenticate,UserController.forgotPassword);
+//Send Otp
+userRouter.post("/send-otp",UserController.sendOtp)
 //Verify otp
-userRouter.post("/verify-otp",Authentication.authenticate,UserController.verifyOtp);
+userRouter.post("/verify-otp",UserController.verifyOtp);
 //Access profile 
 userRouter.post("/access-profile",Authentication.authenticate,UserController.accessProfile);
 //Add address of the user
